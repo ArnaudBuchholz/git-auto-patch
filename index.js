@@ -12,7 +12,7 @@ const options = program
   .option('-p, --path <path>', 'API path', process.env.GIT_AUTO_PATCH_PATH ?? '')
   .requiredOption('-a, --auth <token>', 'Authentification token', process.env.GIT_AUTO_PATCH_AUTH)
   .option('-s, --script <script...>', 'Script(s) to execute')
-  .option('-w, --work <work>', 'Working folder (cleaned)', './.git-auto-path')
+  .option('-w, --work <work>', 'Working folder (cleaned)', './.git-auto-patch')
   .option('-v, --verbose', 'Verbose')
   .parse(process.argv)
   .opts()
