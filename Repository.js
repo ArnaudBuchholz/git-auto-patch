@@ -13,6 +13,9 @@ module.exports = class Repository {
   }
 
   async clone (branchName = 'main') {
+    const { data: repo } = await this[$octokit].request(`GET /repos/${this[$repository]}`)
+    console.log(repo.clone_url)
+    // this[$git]('clone', '')
     throw new Error('Not implemented')
   }
 
