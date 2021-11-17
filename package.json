@@ -1,0 +1,32 @@
+{
+  "name": "git-auto-patch",
+  "version": "1.0.0",
+  "description": "Script to automate github repository patching",
+  "main": "index.js",
+  "scripts": {
+    "test": "standard --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ArnaudBuchholz/git-auto-patch.git"
+  },
+  "keywords": [
+    "github",
+    "automation",
+    "patch"
+  ],
+  "author": "Arnaud Buchholz",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ArnaudBuchholz/git-auto-patch/issues"
+  },
+  "homepage": "https://github.com/ArnaudBuchholz/git-auto-patch#readme",
+  "dependencies": {
+    "commander": "^8.3.0",
+    "dotenv": "^10.0.0",
+    "octokit": "^1.7.0"
+  },
+  "devDependencies": {
+    "standard": "^16.0.4"
+  }
+}
