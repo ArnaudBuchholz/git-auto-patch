@@ -1,5 +1,6 @@
 module.exports = {
+  $context: Symbol('context'),
+  $repository: Symbol('repository'),
   $git: Symbol('git'),
-  $octokit: Symbol('octokit'),
-  $repository: Symbol('repository')
+  $clone: Symbol('clone')
 }
