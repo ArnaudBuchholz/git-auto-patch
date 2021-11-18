@@ -1,17 +1,20 @@
+#!/usr/bin/env node
+
 require('dotenv').config()
 const { mkdir, stat, rm: newRm, rmdir } = require('fs/promises')
 const { version } = require('./package.json')
 const { program } = require('commander')
 const { Octokit } = require('octokit')
-const Wrapper = require('./Wrapper')
+const Github = require('./Github')
 const gitFactory = require('./git')
+const { redacted } = require('./symbols')
 
 const options = program
   .version(version)
   .description('Script to automate github repository patching')
   .option('-h, --host <host>', 'Github host (will be prefixed with https://)', process.env.GIT_AUTO_PATCH_HOST ?? 'api.github.com')
   .option('-p, --path <path>', 'API path', process.env.GIT_AUTO_PATCH_PATH ?? '')
-  .requiredOption('-a, --auth <token>', 'Authentification token', process.env.GIT_AUTO_PATCH_AUTH)
+  .requiredOption('-a, --auth <token>', 'Authentification token', process.env.GIT_AUTO_PATCH_AUTH ? redacted : '')
   .option('-s, --script <script...>', 'Script(s) to execute')
   .option('-w, --work <work>', 'Working folder (cleaned)', './.git-auto-patch')
   .option('-v, --verbose', 'Verbose')
@@ -21,8 +24,11 @@ const options = program
 if (options.verbose) {
   console.log({
     ...options,
-    auth: options.auth ? '[REDACTED]' : ''
+    auth: options.auth ? redacted : ''
   })
+}
+if (options.auth === redacted) {
+  options.auth = process.env.GIT_AUTO_PATCH_AUTH
 }
 
 const rm = newRm ?? rmdir
@@ -59,7 +65,7 @@ async function main () {
   console.log(`Connected as ${user.name} (${user.login})`)
   for await (const script of options.script) {
     const patch = require(script)
-    await patch(new Wrapper(context))
+    await patch(new Github(context))
   }
 }
 
@@ -70,6 +76,6 @@ main()
     return -1
   })
   .then(async code => {
-    // await cleanDir(options.work)
+    await cleanDir(options.work)
     process.exit(code)
   })
