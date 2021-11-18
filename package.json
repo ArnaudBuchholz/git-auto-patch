@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Script to automate github repository patching",
   "main": "index.js",
+  "files": [
+    "*.js"
+  ],
   "scripts": {
     "test": "standard --fix"
   },
