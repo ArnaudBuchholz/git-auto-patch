@@ -1,7 +1,7 @@
 const Repository = require('./Repository')
 const { $context } = require('./symbols')
 
-module.exports = class Wrapper {
+module.exports = class Github {
   repository (name) {
     return new Repository(this[$context], name)
   }
