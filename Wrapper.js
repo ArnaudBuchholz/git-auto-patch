@@ -1,13 +1,12 @@
 const Repository = require('./Repository')
-const { $git, $octokit } = require('./symbols')
+const { $context } = require('./symbols')
 
 module.exports = class Wrapper {
   repository (name) {
-    return new Repository(this[$git], this[$octokit], name)
+    return new Repository(this[$context], name)
   }
 
-  constructor (git, octokit) {
-    this[$git] = git
-    this[$octokit] = octokit
+  constructor (context) {
+    this[$context] = context
   }
 }
