@@ -1,12 +1,13 @@
 const util = require('util')
 const execFile = util.promisify(require('child_process').execFile)
+const { redacted } = require('./symbols')
 
 module.exports = cwd => {
   return async function git (...args) {
     console.log(`${cwd}>git`, ...args.map(arg => {
       const isUrl = arg.match(/^https:\/\/([^:]+):([^@]+)@/)
       if (isUrl) {
-        return arg.replace(isUrl[0], `https://${isUrl[1]}:[REDACTED]@`)
+        return arg.replace(isUrl[0], `https://${isUrl[1]}:${redacted}@`)
       }
       return arg
     }))
