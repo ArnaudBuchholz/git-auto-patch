@@ -10,6 +10,6 @@ module.exports = async git => {
     const sampleContent = await repository.readFile('sample.txt')
     await repository.writeFile('sample.txt', sampleContent + `\n${branchName}`)
     await repository.commitAllAndPush('This is a sample message')
-    await repository.createPullRequest(branchName, 'main')
+    await repository.createPullRequest('Pull request title', 'pull request description', branchName, 'main')
   }
 }
