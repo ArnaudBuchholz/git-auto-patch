@@ -1,4 +1,5 @@
 require('dotenv').config()
+const { mkdir, stat, rm: newRm, rmdir } = require('fs/promises')
 const { version } = require('./package.json')
 const { program } = require('commander')
 const { Octokit } = require('octokit')
@@ -20,8 +21,19 @@ const options = program
 if (options.verbose) {
   console.log({
     ...options,
-    token: options.token ? '[REDACTED]' : ''
+    auth: options.auth ? '[REDACTED]' : ''
   })
+}
+
+const rm = newRm ?? rmdir
+const recursive = { recursive: true }
+async function cleanDir (dir) {
+  try {
+    await stat(dir)
+    await rm(dir, recursive)
+  } catch (err) {
+    // Ignore
+  }
 }
 
 async function main () {
@@ -35,18 +47,29 @@ async function main () {
   if (options.verbose) {
     console.log('Cleaning / preparing work folder...')
   }
+  await cleanDir(options.work).then(() => mkdir(options.work, recursive))
   const git = gitFactory(options.work)
   const { data: user } = await octokit.request('GET /user')
-  console.log(`Connected as ${user.name}`)
+  const context = {
+    options,
+    octokit,
+    git,
+    user
+  }
+  console.log(`Connected as ${user.name} (${user.login})`)
   for await (const script of options.script) {
     const patch = require(script)
-    await patch(new Wrapper(git, octokit))
+    await patch(new Wrapper(context))
   }
 }
 
 main()
-  .then(() => process.exit(0))
+  .then(() => 0)
   .catch(reason => {
     console.error(reason)
-    process.exit(-1)
+    return -1
+  })
+  .then(async code => {
+    // await cleanDir(options.work)
+    process.exit(code)
   })
