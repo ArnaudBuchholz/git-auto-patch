@@ -5,7 +5,10 @@ const gitFactory = require('./git')
 
 module.exports = class Repository {
   async createBranch (name, from = 'main') {
-    const { octokit } = this[$context]
+    const { octokit, options } = this[$context]
+    if (options.verbose) {
+      console.log(`Creating branch ${name} from ${from}...`)
+    }
     const { data: fromRef } = await octokit.request(`GET /repos/${this[$repository]}/git/refs/heads/${from}`)
     const response = await octokit.request(`POST /repos/${this[$repository]}/git/refs`, {
       ref: `refs/heads/${name}`,
@@ -13,6 +16,9 @@ module.exports = class Repository {
     })
     if (response.status !== 201) {
       throw new Error('Not able to create branch')
+    }
+    if (options.verbose) {
+      console.log(`Branch ${name} created.`)
     }
   }
 
@@ -25,13 +31,22 @@ module.exports = class Repository {
       return
     }
     const { octokit, git, options, user } = this[$context]
+    if (options.verbose) {
+      console.log(`Cloning ${this[$repository]}...`)
+    }
     const { data: repo } = await octokit.request(`GET /repos/${this[$repository]}`)
     this[$clone] = join(options.work, this[$repository])
     const cloneUrl = repo.clone_url.replace(/^https:\/\//, `https://${user.login}:${options.auth}@`)
     await git('clone', cloneUrl, this[$repository])
+    if (options.verbose) {
+      console.log(`Cloned ${this[$repository]}, configuring...`)
+    }
     this[$git] = gitFactory(this[$clone])
     this.git('config', '--local', '--add', 'user.name', user.login)
     this.git('config', '--local', '--add', 'user.email', user.email)
+    if (options.verbose) {
+      console.log(`Cloned and configured ${this[$repository]}.`)
+    }
   }
 
   async git (...args) {
