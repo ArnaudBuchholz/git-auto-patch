@@ -1,7 +1,7 @@
 const { $context, $repository, $git, $clone } = require('./symbols')
-const { readFile, writeFile } = require('fs/promises')
+const { readFile, writeFile, access } = require('fs/promises')
 const { join } = require('path')
-const gitFactory = require('./git')
+const gitFactory = require('./gitFactory')
 
 module.exports = class Repository {
   async createBranch (name, from = 'main') {
@@ -51,21 +51,37 @@ module.exports = class Repository {
 
   async git (...args) {
     await this.clone()
-    await this[$git](...args)
+    return await this[$git](...args)
+  }
+
+  async hasChanges () {
+    await this.clone()
+    const { stdout } = await this.git('status', '--porcelain')
+    return stdout.trim() !== ''
   }
 
   async checkout (branchName = 'main') {
     await this.git('checkout', branchName)
   }
 
-  async readFile (fileName) {
+  async exists (filename) {
     await this.clone()
-    return (await readFile(join(this[$clone], fileName))).toString()
+    try {
+      await access(join(this[$clone], filename))
+      return true
+    } catch (e) {
+      return false
+    }
   }
 
-  async writeFile (fileName, content) {
+  async readFile (filename) {
     await this.clone()
-    return await writeFile(join(this[$clone], fileName), content)
+    return (await readFile(join(this[$clone], filename))).toString()
+  }
+
+  async writeFile (filename, content) {
+    await this.clone()
+    return await writeFile(join(this[$clone], filename), content)
   }
 
   async commitAllAndPush (message) {

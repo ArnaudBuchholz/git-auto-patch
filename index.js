@@ -2,11 +2,12 @@
 
 require('dotenv').config()
 const { mkdir, stat, rm: newRm, rmdir } = require('fs/promises')
+const { isAbsolute, join } = require('path')
 const { version } = require('./package.json')
 const { program } = require('commander')
 const { Octokit } = require('octokit')
 const Github = require('./Github')
-const gitFactory = require('./git')
+const gitFactory = require('./gitFactory')
 const { redacted } = require('./symbols')
 
 const options = program
@@ -15,9 +16,11 @@ const options = program
   .option('-h, --host <host>', 'Github host (will be prefixed with https://)', process.env.GIT_AUTO_PATCH_HOST ?? 'api.github.com')
   .option('-p, --path <path>', 'API path', process.env.GIT_AUTO_PATCH_PATH ?? '')
   .requiredOption('-a, --auth <token>', 'Authentification token', process.env.GIT_AUTO_PATCH_AUTH ? redacted : '')
-  .option('-s, --script <script...>', 'Script(s) to execute')
+  .requiredOption('-s, --script <script...>', 'Script(s) to execute')
   .option('-w, --work <work>', 'Working folder (cleaned)', './.git-auto-patch')
   .option('-v, --verbose', 'Verbose')
+  .option('-k, --keep', 'Keep cloned repositories (WARNING: this leaks the authentication token)')
+  .option('-c, --custom <value...>', 'Custom parameters', '')
   .parse(process.argv)
   .opts()
 
@@ -63,9 +66,12 @@ async function main () {
     user
   }
   console.log(`Connected as ${user.name} (${user.login})`)
-  for await (const script of options.script) {
+  for await (let script of options.script) {
+    if (!isAbsolute(script)) {
+      script = join(process.cwd(), script)
+    }
     const patch = require(script)
-    await patch(new Github(context))
+    await patch(new Github(context), ...options.custom)
   }
 }
 
@@ -76,6 +82,10 @@ main()
     return -1
   })
   .then(async code => {
-    await cleanDir(options.work)
+    if (options.keep) {
+      console.warn('⚠️ skipping working folder cleaning, the authentication can be extracted from it')
+    } else {
+      await cleanDir(options.work)
+    }
     process.exit(code)
   })

@@ -105,3 +105,4 @@ dist
 
 # Sample testing
 .git-auto-patch/
+samples/
