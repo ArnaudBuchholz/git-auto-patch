@@ -12,25 +12,29 @@ Script to automate github repository patching : it automates connection, cloning
 ## API
 
 The `github` object passed to the script offers the following methods :
+* `async get (url) ` : triggers an API REST GET request to github, full response is returned
 * `repository (name)` : returns an object representing the repository, name might be `{org}/{repo}` or `{user}/{repo}`
 
 The `repository` object exposes :
-* `async createBranch (name, from = 'main')` : creates a branch
+* `async createBranch (name, from = 'main')` : creates a branch *(the branch is created using github API, clone the repository **after** creating the branch or you won't get it)*
 * `cloned` : `true` if the repository is cloned locally
 * `async clone ()` : clones the repository locally *(in a working folder)*
 * `async git (...args)` : (⏬) execute the git command
+* `async hasChanges ()` : (⏬) `true` if the repository has changes (based on `git status`)
 * `async checkout (branchName = 'main')` : (⏬) switch to the given branch
-* `async readFile (filename)` : (⏬) read the repository text file *(filename is relative to the root of the repository)*
-* `async writeFile (filename, content)` : (⏬) overwrite the repository text file with the given content *(filename is relative to the root of the repository)*
+* `async exists (filename)` : (⏬📂) `true` if the repository file (or folder) exists
+* `async readFile (filename)` : (⏬📂) read the repository text file
+* `async writeFile (filename, content)` : (⏬📂) overwrite the repository text file with the given content
 * `async commitAllAndPush (message)` : (⏬) stage all changed files, commit them *(with the given message)* and push
 * `async createPullRequest (title, body, head, base = 'main')` : create a pull request
 
 ⏬ : Before executing the command, the repository is cloned locally (if not already cloned)
+📂 : Filename is relative to the root of the repository
 
 ## Sample patch script
 
 ```javascript
-module.exports = async github => {
+module.exports = async (github, ...customParameters) => {
   const repository = github.repository('ArnaudBuchholz/SampleProject')
   const branchName = `patch-${new Date().toISOString().replace(/:|T|\.|z/ig, '')}`
   await repository.createBranch(branchName, 'main')
