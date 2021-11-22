@@ -60,7 +60,25 @@ module.exports = class Repository {
     return stdout.trim() !== ''
   }
 
+  async pushStash () {
+    await this.git('stash', 'push')
+  }
+
+  async popStash () {
+    try {
+      await this.git('stash', 'pop')
+    } catch (reason) {
+      if (reason.stderr.includes('No stash entries found.')) {
+        console.error(reason.stderr)
+        console.warn('Ignoring error (maybe you created new files)')
+      } else {
+        throw reason
+      }
+    }
+  }
+
   async checkout (branchName = 'main') {
+    await this.git('fetch')
     await this.git('checkout', branchName)
   }
 
